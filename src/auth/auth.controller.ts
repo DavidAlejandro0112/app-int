@@ -1,34 +1,97 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body ,Logger, ConflictException, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, NotFoundException, Post, Request, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { LoginDto } from './dto/login.dto';
+import { AuthGuard } from "./guard/auth.guard";
+import { ApiTags } from '@nestjs/swagger';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+    private readonly logger = new Logger(AuthController.name);
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
-  }
+    constructor(
+        private readonly authService: AuthService
+    ) {}
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
-  }
+    @HttpCode(HttpStatus.CREATED)
+    @Post('register')
+    async register(
+        @Body() createUserDto: CreateUserDto
+    ) {
+        try {
+            return await this.authService.register(createUserDto);
+        } catch (error) {
+            this.logger.error(`Registration error: ${error.message}`);
+            
+            if (error instanceof ConflictException) {
+                throw new ConflictException('User already exists');
+            }
+            
+            throw new InternalServerErrorException('Registration failed');
+        }
+    }
+    
+    @HttpCode(HttpStatus.OK)
+    @Post('login')
+    async login(@Body() loginDto: LoginDto) {
+        try {
+            return await this.authService.login(loginDto);
+        } catch (error) {
+            this.logger.error(`Login error: ${error.message}`);
+            
+            if (error instanceof UnauthorizedException) {
+                throw new UnauthorizedException('Invalid credentials');
+            }
+            
+            throw new InternalServerErrorException('Login failed');
+        }
+    }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
-  }
+    @Get('profile')
+    @UseGuards(AuthGuard)
+    profile(@Request() req) {
+        return req.user;
+    }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
+    @Post('reset-password')
+    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+        try {
+            return await this.authService.resetPassword(resetPasswordDto);
+        } catch (error) {
+            this.logger.error(`Reset password error: ${error.message}`);
+            
+            if (error instanceof NotFoundException) {
+                throw new NotFoundException('User not found');
+            }
+            
+            throw new InternalServerErrorException('Password reset failed');
+        }
+    }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
-  }
+    @Post('change-password')
+    @UseGuards(AuthGuard)
+    async changePassword(
+        @Request() req,
+        @Body() changePasswordDto: ChangePasswordDto
+    ) {
+        try {
+            const userId = req.user.id;
+            return await this.authService.changePassword(userId, changePasswordDto);
+        } catch (error) {
+            this.logger.error(`Change password error: ${error.message}`);
+            
+            if (error instanceof UnauthorizedException) {
+                throw new UnauthorizedException('Invalid current password');
+            }
+            
+            if (error instanceof NotFoundException) {
+                throw new NotFoundException('User not found');
+            }
+            
+            throw new InternalServerErrorException('Password change failed');
+        }
+    }
 }
