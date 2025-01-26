@@ -24,8 +24,10 @@ export class UsersService {
 
         // Crear el perfil
         const profile = this.profileRepo.create({
-            nombre: createUserDto.nombre,
-            email: createUserDto.email,
+          firstName: createUserDto.firstName,
+          lastName: createUserDto.lastName,
+          phoneNumber: createUserDto.phoneNumber,
+          userId:user
         });
         await this.profileRepo.save(profile);
 

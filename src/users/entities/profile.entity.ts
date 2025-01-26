@@ -8,12 +8,23 @@ export class Profile {
 @PrimaryGeneratedColumn()
     id: number; 
 
-    @Column({ type: 'varchar', length: 100 })
-    nombre: string; // Campo para el nombre del perfil
+    @Column({ nullable: true })
+    firstName: string;
+  
+    @Column({ nullable: true })
+    lastName: string;
+  
+    @Column({ nullable: true })
+    address?: string;
+  
+    @Column({ nullable: true })
+    phoneNumber: string;
+  
+    @Column({ nullable: true })
+    birthDate?: Date;
+    
 
-    @Column({ type: 'varchar', unique: true, length: 150 })
-    email: string; 
 
     @OneToOne(() => User, (user) => user.profile)
-    user: User;
+    userId: User;
 }

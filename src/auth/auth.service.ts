@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ChangePasswordDto } from './dto/changePassword.dto'
 import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { jwtConstants } from './constants/jwt.constants';
+
 
 
 @Injectable()
@@ -16,9 +16,9 @@ export class AuthService {
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
     ){}
-    async register({ password, email, nombre }: CreateUserDto) {
+    async register({ password, email, username }: CreateUserDto) {
         try {
-            const user = { password, email, nombre };
+            const user = { password, email, username };
             const existingUser = await this.usersService.findOneByEmail(user.email);
             if (existingUser){
                 throw new BadRequestException("Email already exists");
@@ -26,7 +26,7 @@ export class AuthService {
             else{
             const hashedPassword = await bcryptjs.hash(password, 10);
              this.usersService.create({ 
-                nombre,
+                username,
                 email, 
                 password: hashedPassword,
             });
