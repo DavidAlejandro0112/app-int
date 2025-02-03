@@ -18,11 +18,9 @@ export class UsersService {
      
   async create(createUserDto: CreateUserDto): Promise<{ user: User; profile: Profile }> {
     try {
-        // Crear el usuario
         const user = this.userRepo.create(createUserDto);
         await this.userRepo.save(user);
-
-        // Crear el perfil
+        
         const profile = this.profileRepo.create({
           firstName: createUserDto.firstName,
           lastName: createUserDto.lastName,

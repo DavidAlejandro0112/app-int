@@ -1,38 +1,36 @@
-import { Controller, Post, Body, Get, Patch, Param, Delete, ConflictException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, Param, Delete, ConflictException, UseGuards } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-
-import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Task } from './entities/task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { TagsService } from 'src/tags/tags.service';
 import { TaskStatus } from 'src/common/enum/tasks.enum';
+import { AuthGuard } from 'src/auth/guard/auth.guard';
+import { RolesGuard } from 'src/auth/guard/roles.guard';
 
 @ApiTags('tasks')
+@ApiBearerAuth()
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('tasks')
 export class TasksController {
   constructor(
     private readonly tasksService: TasksService,
-    private readonly tagsService: TagsService
   ) {}
 
   @Post()
   @ApiResponse({ status: 201, description: 'Task created successfully.', type: Task })
   async create(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
       try {
-          // Convertir dueDate a Date
           const dueDate = new Date(createTaskDto.dueDate);
-  
-          // Crear la nueva tarea
+
           const newTask = await this.tasksService.create({ 
             ...createTaskDto, 
             dueDate,
-            status: TaskStatus.PENDING // Usa el enum correcto
+            status: TaskStatus.PENDING 
           });
-          // Enviar notificación de nueva tarea
-          await this.tagsService.sendNewTaskTagEmail(newTask.title, createTaskDto.userEmail);
+          await this.tasksService.sendNewTaskTagEmail(newTask.title, createTaskDto.userEmail);
   
-          return newTask; // Retornar la nueva tarea creada
+          return newTask; 
       } catch (error) {
           throw new ConflictException('Failed to create task or send notification.');
       }
@@ -54,7 +52,7 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'Task updated successfully.', type: Task })
   update(@Param('id') id: number, @Body() updateTaskDto: UpdateTaskDto): Promise<Task> {
     if (updateTaskDto.dueDate) {
-      updateTaskDto.dueDate = new Date(updateTaskDto.dueDate); // Convertir también aquí si se actualiza
+      updateTaskDto.dueDate = new Date(updateTaskDto.dueDate);
     }
     return this.tasksService.update(id, {
       ...updateTaskDto,

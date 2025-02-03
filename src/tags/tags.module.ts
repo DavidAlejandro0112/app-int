@@ -16,7 +16,7 @@ import { AuthGuard } from 'src/auth/guard/auth.guard';
           secret: process.env.JWT_SECRET,
           signOptions: { expiresIn: '60m' }
         }),
-        AuthModule // Importa el módulo de autenticación
+        AuthModule 
       ],
   controllers: [TagsController],
   providers: [TagsService,  AuthGuard],

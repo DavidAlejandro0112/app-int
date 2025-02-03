@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsDate, IsEmail, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, IsStrongPassword, MaxLength, MinLength } from "class-validator";
+import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, IsStrongPassword, MaxLength, MinLength } from "class-validator";
+import { Role } from "src/common/enum/roles.enum";
+import { UserStatus } from "src/common/enum/user.enum";
 
 
 
@@ -45,7 +47,6 @@ export class CreateUserDto {
         required: false,
         example: 'Pérez' 
       })
-      
       @IsString()
       lastName?: string;
     
@@ -74,12 +75,21 @@ export class CreateUserDto {
       @Type(() => Date)
       @IsDate()
       birthDate?: Date;
-      @ApiProperty({ 
-        description: 'ID de usuario asociado', 
-        required: false,
-        example: 1 
+      @ApiProperty({
+        enum: Role,
+        description: 'Rol del usuario',
+        default: Role.USER,
       })
+      @IsEnum(Role)
       @IsOptional()
-      userId?: number;
+      role?: Role = Role.USER;
+      @ApiProperty({
+        enum: UserStatus,
+        description: 'Estado del usuario',
+        default: UserStatus.ACTIVE,
+      })
+      @IsEnum(UserStatus)
+      @IsOptional()
+      status?: UserStatus = UserStatus.ACTIVE;
 }
     
