@@ -19,7 +19,7 @@ import { AuthGuard } from 'src/auth/guard/auth.guard';
         AuthModule 
       ],
   controllers: [TagsController],
-  providers: [TagsService,  AuthGuard],
-  exports:[TagsService],
+  providers: [TagsService, AuthGuard],
+  exports:[],
 })
 export class TagsModule {}

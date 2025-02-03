@@ -1,7 +1,8 @@
 import { TaskPriority, TaskStatus } from 'src/common/enum/tasks.enum';
+import { Notifications } from 'src/notification/entities/notification.entity';
 import { Tag } from 'src/tags/entities/tag.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 
 @Entity('task')
 export class Task {
@@ -38,5 +39,8 @@ export class Task {
   @ManyToMany(() => Tag, (tag) => tag.tasks)
   @JoinTable() 
   tags: Tag[];
+  
+  @OneToMany(() => Notifications, (notification)=> notification.task,)
+  notifications: Notifications[];
 
 }

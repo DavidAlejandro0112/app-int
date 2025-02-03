@@ -4,6 +4,7 @@ import { Role } from "src/common/enum/roles.enum";
 import { Task } from "src/tasks/entities/task.entity";
 import { Tag } from "src/tags/entities/tag.entity";
 import { UserStatus } from "src/common/enum/user.enum";
+import { Notifications } from "src/notification/entities/notification.entity";
 
 @Entity('User')
 export class User {
@@ -63,4 +64,9 @@ export class User {
       eager: true, cascade: true, onDelete: 'CASCADE'
     })
     tags:Tag[];
+    @OneToMany(() => Notifications, (notification)=> notification.user,{
+      eager: true, cascade: true, onDelete: 'CASCADE'
+    })
+    notifications: Notification[];
+
 }

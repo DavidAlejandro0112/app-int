@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { TaskStatus } from 'src/common/enum/tasks.enum';
 import { MailerService } from '@nestjs-modules/mailer';
+import { Notifications } from 'src/notification/entities/notification.entity';
 
 @Injectable()
 export class TasksService {
@@ -12,7 +13,7 @@ export class TasksService {
   constructor(
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
-    private readonly mailerService: MailerService,
+
   ) {}
 
   async create(task: Partial<Task>): Promise<Task> {
@@ -93,25 +94,6 @@ export class TasksService {
     } catch (error) {
       this.logger.error('Error marking task as completed', error);
       throw new ConflictException('Task could not be marked as completed. Please try again.');
-    }
-  }
-  
-  async sendNewTaskTagEmail(taskTitle: string, userEmail: string): Promise<void> {
-    try {
-      await this.mailerService.sendMail({
-        to: userEmail,
-        subject: 'Nueva Tarea Creada',
-        text: `Se ha creado una nueva tarea: ${taskTitle}`,
-        html: `
-          <h1>Nueva Tarea Creada</h1>
-          <p>Se ha creado la tarea: <strong>${taskTitle}</strong></p>
-          <p>¡Mantente al día con tus actividades!</p>
-        `
-      });
-
-      this.logger.log(`Notificación de nueva tarea enviada a ${userEmail}`);
-    } catch (error) {
-      this.logger.error(`Error enviando notificación de nueva tarea: ${error.message}`);
     }
   }
 }

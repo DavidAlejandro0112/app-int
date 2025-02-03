@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Patch, Param, Delete, ConflictException, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, Param, Delete, ConflictException, UseGuards, Request } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Task } from './entities/task.entity';
@@ -7,6 +7,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskStatus } from 'src/common/enum/tasks.enum';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { NotificationsService } from 'src/notification/notification.service';
 
 @ApiTags('tasks')
 @ApiBearerAuth()
@@ -15,25 +16,26 @@ import { RolesGuard } from 'src/auth/guard/roles.guard';
 export class TasksController {
   constructor(
     private readonly tasksService: TasksService,
+    private notificationsService: NotificationsService
   ) {}
 
   @Post()
   @ApiResponse({ status: 201, description: 'Task created successfully.', type: Task })
-  async create(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
-      try {
-          const dueDate = new Date(createTaskDto.dueDate);
+  async create(@Body() createTaskDto: CreateTaskDto, @Request() req): Promise<Task> {
+    try {
+      const dueDate = new Date(createTaskDto.dueDate);
+      const newTask = await this.tasksService.create({ 
+        ...createTaskDto, 
+        dueDate,
+        status: TaskStatus.PENDING 
+      });
+      const userId = req.user.id;
+      await this.notificationsService.notifyNewTask(userId, newTask); // Asumiendo que userId está presente en el DTO
 
-          const newTask = await this.tasksService.create({ 
-            ...createTaskDto, 
-            dueDate,
-            status: TaskStatus.PENDING 
-          });
-          await this.tasksService.sendNewTaskTagEmail(newTask.title, createTaskDto.userEmail);
-  
-          return newTask; 
-      } catch (error) {
-          throw new ConflictException('Failed to create task or send notification.');
-      }
+      return newTask; 
+    } catch (error) {
+      throw new ConflictException('Failed to create task or send notification.');
+    }
   }
   
 

@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
 import { TagsModule } from './tags/tags.module';
+import {  NotificationsModule } from './notification/notification.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -24,15 +26,17 @@ import { TagsModule } from './tags/tags.module';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         autoLoadEntities: true,
-        synchronize: true, // Solo en desarrollo; no usar en producción
+        synchronize: true, 
 
       }),
       
-    }),
+    }), 
+    ScheduleModule.forRoot(),
     UsersModule,
     AuthModule,
     TasksModule,
-    TagsModule, ],
+    TagsModule,
+    NotificationsModule, ],
   
     
   controllers: [AppController],
